@@ -266,7 +266,126 @@ class CardPatternHelper {
             return CardPattern.THREE_WITH_PAIR;
         }
 
+        // 顺子
+        if (isStraight(cards, countMap)) {
+            return CardPattern.STRAIGHT;
+        }
+
+        // 连对
+        if (isStraightPair(cards, countMap)) {
+            return CardPattern.STRAIGHT_PAIR;
+        }
+
+        // 飞机
+        if (isAirplane(cards, countMap)) {
+            return CardPattern.AIRPLANE;
+        }
+        // 四带二
+        if (isFourWithTwo(cards, countMap)) {
+            return CardPattern.FOUR_WITH_TWO;
+        }
+
         return CardPattern.INVALID;
+    }
+
+    private static boolean isStraight(List<Card> cards, HashMap<Integer, Integer> countMap) {
+        if (cards.size() < 5 || countMap.size() != cards.size()) {
+            return false;
+        }
+
+        // 最后一张牌不能超过A
+        if (cards.get(cards.size() - 1).getValue() >= CardRank.ACE.getValue()) {
+            return false;
+        }
+
+        // 判断是否连续
+        for (int i = 1; i < cards.size(); i++) {
+            if (cards.get(i).getValue() - cards.get(i - 1).getValue() != 1) {
+                return false;
+            }
+        }
+        // 都通过了 返回true
+        return true;
+    }
+    private static boolean isStraightPair(List<Card> cards, HashMap<Integer, Integer> countMap) {
+        if (cards.size() < 6 || cards.size() %2 != 0) {
+            return false;
+        }
+
+        // 是否都是对子
+        for (int value : countMap.values()) {
+            if (value != 2) {
+                return false;
+            }
+        }
+
+        // 判断是否连续
+        Set<Integer> keySet = countMap.keySet();
+        ArrayList<Integer> keyList = new ArrayList<>(keySet);
+        Collections.sort(keyList);
+        for (int i = 1; i < keyList.size(); i++) {
+            if (keyList.get(i) - keyList.get(i - 1) != 1) {
+                return false;
+            }
+        }
+        // 都通过了 返回true
+        return true;
+    }
+
+    private static boolean isAirplane(List<Card> cards, Map<Integer, Integer> countMap) {
+        if (cards.size() != 6 && cards.size() != 8 && cards.size() != 10) {
+            return false;
+        }
+        // 统计出现三次牌的rank
+        // 以及对子
+        int twoCount = 0;
+        ArrayList<Integer> threeRanks = new ArrayList<>();
+        for (Map.Entry<Integer, Integer> rankEntry : countMap.entrySet()) {
+            if (rankEntry.getValue() == 3) {
+                threeRanks.add(rankEntry.getKey());
+            } else if (rankEntry.getValue() == 2) {
+                  twoCount++;
+            }
+        }
+        if (cards.size() == 10 && twoCount != 2) {
+            return false;
+        }
+        return threeRanks.size() == 2 && Math.abs(threeRanks.get(0) - threeRanks.get(1)) == 1;
+    }
+
+    private static boolean isFourWithTwo(List<Card> cards, Map<Integer, Integer> countMap) {
+        if (cards.size() != 6) {
+            return false;
+        }
+
+        boolean hasFour = false;
+        for (Integer value : countMap.values()) {
+            if (value == 4) {
+                hasFour = true;
+                break;
+            }
+        }
+        return hasFour;
+    }
+
+    private static boolean isBomb(List<Card> cards, Map<Integer, Integer> countMap) {
+        if (cards.size() != 4 && countMap.size() != 1) {
+            return false;
+        }
+        return countMap.containsValue(4);
+    }
+
+    private static boolean isRocket(List<Card> cards, Map<Integer, Integer> countMap) {
+        if (cards.size() != 2) {
+            return false;
+        }
+        for (Integer value : countMap.values()) {
+            if (value < CardRank.SMALL_KING.getValue()) {
+                return false;
+            }
+        }
+        Collections.sort(cards);
+        return cards.get(0).getValue() == CardRank.SMALL_KING.getValue() && cards.get(1).getValue() == CardRank.BIG_KING.getValue();
     }
 
     private static int calculateWeight(List<Card> cards, CardPattern cardPattern) {
