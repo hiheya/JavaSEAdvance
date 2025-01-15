@@ -354,38 +354,20 @@ class CardPatternHelper {
     }
 
     private static boolean isFourWithTwo(List<Card> cards, Map<Integer, Integer> countMap) {
-        if (cards.size() != 6) {
-            return false;
-        }
-
-        boolean hasFour = false;
-        for (Integer value : countMap.values()) {
-            if (value == 4) {
-                hasFour = true;
-                break;
-            }
-        }
-        return hasFour;
+        return cards.size() == 6 && countMap.containsValue(4);
     }
 
     private static boolean isBomb(List<Card> cards, Map<Integer, Integer> countMap) {
-        if (cards.size() != 4 && countMap.size() != 1) {
-            return false;
-        }
-        return countMap.containsValue(4);
+        return cards.size() == 4 && countMap.size() == 1 && countMap.containsValue(4);
     }
 
     private static boolean isRocket(List<Card> cards, Map<Integer, Integer> countMap) {
         if (cards.size() != 2) {
             return false;
         }
-        for (Integer value : countMap.values()) {
-            if (value < CardRank.SMALL_KING.getValue()) {
-                return false;
-            }
-        }
-        Collections.sort(cards);
-        return cards.get(0).getValue() == CardRank.SMALL_KING.getValue() && cards.get(1).getValue() == CardRank.BIG_KING.getValue();
+        return countMap.size() == 2 &&
+                countMap.containsKey(CardRank.SMALL_KING.getValue()) &&
+                countMap.containsKey(CardRank.BIG_KING.getValue());
     }
 
     private static int calculateWeight(List<Card> cards, CardPattern cardPattern) {
